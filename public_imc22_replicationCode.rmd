@@ -32,7 +32,6 @@ dev.off()
 ```
 
 ```{r}
-
 # select relevant features
 df_data_crashed_empty = select(orig_crashed_empty,PLT,os,dom_elements,num_scripts,num_css,num_images,num_iframes,num_fonts,scripts_kb,css_kb,images_kb,iframes_kb,fonts_kb,mp_low,mp_high,mp_no,crash,not_crash)
 summary(df_data_crashed_empty)
