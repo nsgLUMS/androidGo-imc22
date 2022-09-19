@@ -1,4 +1,4 @@
-# androidGo-imc22
+# Causal Impact of Android Go on Mobile Web Performance
 
 In this repository, we release the dataset and code for carrying out the analysis and generating figures used in the ACM Internet Measurement Conference (IMC) 2022 paper, "Causal Impact of Android Go on Mobile Web Performance"
 
