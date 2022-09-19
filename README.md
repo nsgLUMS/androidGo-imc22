@@ -1,5 +1,7 @@
 # androidGo-imc22
 
+In this repository, we release the dataset and code for carrying out the analysis and generating figures used in the ACM Internet Measurement Conference (IMC) 2022 paper, "Causal Impact of Android Go on Mobile Web Performance"
+
 This repository contains the following files:
 
 1. "imc22_dataset.csv": contains the dataset of 600 page loads
