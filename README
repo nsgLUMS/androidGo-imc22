@@ -12,5 +12,3 @@ This repository contains the following files:
 
 5. "public_imc22_replicationCode.rmd": R code for generating results involving the Heckman Selection model
 	- it uses the csv file "df_orig_w_crashed_column_empty.csv" as input
-
-6. The "figs" directory contains all the figures that are included in the paper
