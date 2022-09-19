@@ -31,8 +31,6 @@ plot(CDF, ylab="CDF", xlab="Web page Size (KB)", cex.axis=1.5, cex.lab=1.5, col=
 dev.off()
 ```
 
-
-**Construct scores of survey measures**
 ```{r}
 
 # select relevant features
