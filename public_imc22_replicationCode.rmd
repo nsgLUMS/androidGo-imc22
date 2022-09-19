@@ -1,0 +1,82 @@
+---
+Replication code for the following paper: "Causal Impact of Android Go on Mobile Web Performance", ACM Internet Measurement Conference (IMC), October 25-27, 2022, Nice, France
+- Paper authors: Dr. Ihsan Ayyub Qazi, Dr. Zafar Ayyub Qazi, Muhammad Abdullah - (LUMS)
+- This R code was used for generating results for the Heckman selection model and Appendix Table 8
+- Code author: Ihsan Ayyub Qazi (LUMS) - Email: ihsan.qazi@lums.edu.pk
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+Batch comments: *Ctrl+Shift+C* 
+Run next chunk: *Ctrl+Alt+N*
+
+```{r}
+library(dplyr)
+library(caret)
+library(e1071)
+library(tidyr)
+library(reshape)
+
+orig_crashed_empty <- read.csv("df_orig_w_crashed_column_empty.csv")
+summary(orig_crashed_empty)
+```
+
+```{r}
+CDF <- ecdf(orig_crashed_empty$pagesize_kb)
+plot(CDF, ylab="CDF", xlab="Web page Size (KB)", cex.axis=1.5, cex.lab=1.5, col="blue", main=NULL, cex = 1.5, pch=c(17), do.points=FALSE, lw=6)
+
+png("android_go_pagesizes.png", width = 480, height = 360)
+plot(CDF, ylab="CDF", xlab="Web page Size (KB)", cex.axis=1.5, cex.lab=1.5, col="blue", main=NULL, cex = 1.5, pch=c(17), do.points=FALSE, lw=6)
+dev.off()
+```
+
+
+**Construct scores of survey measures**
+```{r}
+
+# select relevant features
+df_data_crashed_empty = select(orig_crashed_empty,PLT,os,dom_elements,num_scripts,num_css,num_images,num_iframes,num_fonts,scripts_kb,css_kb,images_kb,iframes_kb,fonts_kb,mp_low,mp_high,mp_no,crash,not_crash)
+summary(df_data_crashed_empty)
+```
+
+
+```{r}
+library(sampleSelection)
+
+# OLS regression model without controls
+s0 <- lm(PLT ~ os, data=df_data_crashed_empty)
+
+# OLS regression model with Web page features added as controls
+s1 <- lm(PLT ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb, data=df_data_crashed_empty)
+
+# OLS regression model with interaction terms (but without controls)
+s2 <- lm(PLT ~ os + mp_low + mp_high + os*mp_low + os*mp_high, data=df_data_crashed_empty)
+
+# OLS regression model with interaction terms and control variables
+s3 <- lm(PLT ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb + mp_low + mp_high + os*mp_low + os*mp_high, data=df_data_crashed_empty)
+#summary(s1)
+
+# Heckman selection model with controls
+heckit <- selection(!is.na(PLT) ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb,
+                    PLT ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb,
+                    method = "2step",data = df_data_crashed_empty)
+
+# Heckman selection model with interaction terms (Low MP and High MP) and controls
+heckit1 <- selection(!is.na(PLT) ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb,
+                    PLT ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb + mp_low + mp_high + os*mp_low + os*mp_high,
+                    method = "2step",data = df_data_crashed_empty)
+
+# Heckman selection model with interaction terms (No MP and Low MP) and controls
+heckit3 <- selection(!is.na(PLT) ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb,
+                    PLT ~ os + dom_elements + num_scripts + num_css + num_images + num_iframes + num_fonts + scripts_kb + css_kb + images_kb + iframes_kb + fonts_kb + mp_no + mp_low + os*mp_no + os*mp_low,
+                    method = "2step",data = df_data_crashed_empty)
+
+library(stargazer)
+stargazer(s0,s1,heckit,s2,s3,heckit1,
+          type="text")
+
+stargazer(s0,s1,heckit,s3,heckit1,
+      type="latex", out = "out.tex", font.size = "footnotesize", no.space = TRUE, digits=2, column.sep.width = "2.5pt", notes.align = "l", notes = "Column 1 shows OLS regression without any controls, Column 2 includes Web page features as controls, Column 3 corresponds to the Heckman Selection model, and Column 4 refers to the Heckman Selection model with controls for Web page features, dummies for memory pressure states and interaction terms. In this dataset, each observation corresponds to the average of 10 runs.")
+
+```
